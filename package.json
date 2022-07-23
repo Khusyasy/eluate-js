@@ -1,0 +1,15 @@
+{
+  "name": "eluate-js",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --sourcemap --outfile=dist/eluate.js",
+    "dev": "esbuild src/main.js --bundle --watch --outfile=bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esbuild": "^0.14.49"
+  }
+}

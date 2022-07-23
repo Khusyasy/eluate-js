@@ -1,0 +1,4 @@
+node_modules
+
+# for development
+bundle.js
