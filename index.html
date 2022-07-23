@@ -19,8 +19,17 @@
       <button data-on:click="this.count++">
         +
       </button>
-      <div data-show="count == 1">
-        hi 1
+      <div data-show="count < 0">
+        wrong way
+      </div>
+      <div data-show="count >= 0 && count < 3">
+        keep trying!
+      </div>
+      <div data-show="count >= 3 && count < 5">
+        good job!
+      </div>
+      <div data-show="count >= 5 && count < 7">
+        nice!
       </div>
     </div>
     <div data-set='{ "show": false }'>

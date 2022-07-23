@@ -26,37 +26,40 @@ function createObjectProxy(target = {}) {
 
       // update the real DOM
       // data-text
-      $text.forEach(({ $el, propName }) => {
-        if (propName === prop) {
-          $el.innerHTML = value;
-        }
+      $text.forEach(({ $el, testFn }) => {
+        $el.innerHTML = testFn();
       });
       // data-show
-      $show.forEach(({ $el, propName }) => {
-        if (propName === prop) {
-          $el.style.display = value ? '' : 'none';
-        }
+      $show.forEach(({ $el, testFn }) => {
+        $el.style.display = testFn() ? '' : 'none';
       });
     },
   });
   return proxy;
 }
 
+function createFnGlobal(value, proxy) {
+  const setGlobal = Object.keys(proxy)
+    .map((k) => `globalThis.${k} = this.${k}`)
+    .join(';');
+  return new Function(`${setGlobal};\nreturn ${value}`).bind(proxy);
+}
+
 function initElement($el, proxy) {
   Object.entries($el.dataset).forEach(([name, value]) => {
     if (name === 'text') {
-      // add the element to the $instances array, so we can update it later when the value changes
-      proxy.$text.push({ $el, propName: value });
-      $el.innerHTML = proxy[value];
+      const testFn = createFnGlobal(value, proxy);
+      proxy.$text.push({ $el, testFn });
+      $el.innerHTML = testFn();
     } else if (name.startsWith('on:')) {
       const [, eventName] = name.split(':');
-      // create a new function binded to proxy for handling the event
       // TODO: not reactive for nested objects and arrays
       const eventHandler = new Function('$event', value).bind(proxy);
       $el.addEventListener(eventName, eventHandler);
     } else if (name === 'show') {
-      proxy.$show.push({ $el, propName: value });
-      $el.style.display = proxy[value] ? '' : 'none';
+      const testFn = createFnGlobal(value, proxy);
+      proxy.$show.push({ $el, testFn });
+      $el.style.display = testFn() ? '' : 'none';
     }
   });
   [...$el.children].forEach(($child) => {
