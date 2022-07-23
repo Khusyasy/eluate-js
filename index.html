@@ -19,6 +19,18 @@
       <button data-on:click="this.count++">
         +
       </button>
+      <div data-show="count == 1">
+        hi 1
+      </div>
+    </div>
+    <div data-set='{ "show": false }'>
+        <h1>are you there?</h1>
+        <button data-on:click="this.show = !this.show">
+          <span data-text="show"></span>
+        </button>
+        <div data-show="show">
+          hi im here
+        </div>
     </div>
     <script src="bundle.js"></script>
   </body>
