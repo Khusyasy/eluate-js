@@ -26,12 +26,12 @@ function createObjectProxy(target = {}) {
 
       // update the real DOM
       // data-text
-      $text.forEach(({ $el, testFn }) => {
-        $el.innerHTML = testFn();
+      $text.forEach(({ element, testFn }) => {
+        element.innerHTML = testFn();
       });
       // data-show
-      $show.forEach(({ $el, testFn }) => {
-        $el.style.display = testFn() ? '' : 'none';
+      $show.forEach(({ element, testFn }) => {
+        element.style.display = testFn() ? '' : 'none';
       });
     },
   });
@@ -45,53 +45,55 @@ function createFnGlobal(value, proxy) {
   return new Function(`${setGlobal};\nreturn ${value}`).bind(proxy);
 }
 
-function initElement($el, proxy) {
-  Object.entries($el.dataset).forEach(([name, value]) => {
+function initElement(element, proxy) {
+  Object.entries(element.dataset).forEach(([name, value]) => {
     if (name === 'text') {
       const testFn = createFnGlobal(value, proxy);
-      proxy.$text.push({ $el, testFn });
-      $el.innerHTML = testFn();
+      proxy.$text.push({ element, testFn });
+      element.innerHTML = testFn();
     } else if (name.startsWith('on:')) {
       const [, eventName] = name.split(':');
       // TODO: not reactive for nested objects and arrays
       const eventHandler = new Function('$event', value).bind(proxy);
-      $el.addEventListener(eventName, eventHandler);
+      element.addEventListener(eventName, eventHandler);
     } else if (name === 'show') {
       const testFn = createFnGlobal(value, proxy);
-      proxy.$show.push({ $el, testFn });
-      $el.style.display = testFn() ? '' : 'none';
+      proxy.$show.push({ element, testFn });
+      element.style.display = testFn() ? '' : 'none';
     }
   });
-  [...$el.children].forEach(($child) => {
+  [...element.children].forEach(($child) => {
     initElement($child, proxy);
   });
 }
 
-function initRoot($el, value) {
-  // TODO: find another way to parse the data more like normal js objects
-  //  because currently it only accept JSON
-  const jsonData = JSON.parse(value);
+function initRoot(element, value) {
+  if (value === '') value = '{}';
+  const dataObj = new Function(`return ${value};`)();
+  if (dataObj.constructor !== Object) {
+    throw new Error('`data-set` value must be an object');
+  }
 
   // create an object proxy to use in data binding
-  const proxy = createObjectProxy(jsonData);
-  [...$el.children].forEach(($child) => {
+  const proxy = createObjectProxy(dataObj);
+  [...element.children].forEach(($child) => {
     initElement($child, proxy);
   });
 }
 
 // find element with 'data-set' to initialize the root element of the app
-document.querySelectorAll('*').forEach(($el) => {
-  Object.entries($el.dataset).forEach(([name, value]) => {
+document.querySelectorAll('*').forEach((element) => {
+  Object.entries(element.dataset).forEach(([name, value]) => {
     if (name === 'set') {
-      initRoot($el, value);
+      initRoot(element, value);
     }
   });
 });
 
 // remove all 'data-*' attributes
 // idk, just to make the html looks cleaner
-document.querySelectorAll('*').forEach(($el) => {
-  Object.entries($el.dataset).forEach(([name, _]) => {
-    delete $el.dataset[name];
+document.querySelectorAll('*').forEach((element) => {
+  Object.entries(element.dataset).forEach(([name, _]) => {
+    delete element.dataset[name];
   });
 });
