@@ -11,7 +11,8 @@ function createObjectProxy(target = {}) {
       } else if (prop === '$show') {
         return $show;
       }
-      let result = target[prop];
+
+      let result = new Function(`return this.${prop}`).call(target);
       return result;
     },
     set(target, prop, value) {
@@ -20,16 +21,21 @@ function createObjectProxy(target = {}) {
       } else if (prop === '$show') {
         $show = value;
       }
-      target[prop] = value;
+
+      new Function(`return this.${prop} = ${value}`).call(target);
 
       // update the real DOM
       // data-text
-      $text.forEach(({ $el, prop }) => {
-        $el.innerHTML = target[prop];
+      $text.forEach(({ $el, propName }) => {
+        if (propName === prop) {
+          $el.innerHTML = value;
+        }
       });
       // data-show
-      $show.forEach(({ $el, prop }) => {
-        $el.style.display = target[prop] ? '' : 'none';
+      $show.forEach(({ $el, propName }) => {
+        if (propName === prop) {
+          $el.style.display = value ? '' : 'none';
+        }
       });
     },
   });
@@ -40,16 +46,16 @@ function initElement($el, proxy) {
   Object.entries($el.dataset).forEach(([name, value]) => {
     if (name === 'text') {
       // add the element to the $instances array, so we can update it later when the value changes
-      proxy.$text.push({ $el, prop: value });
+      proxy.$text.push({ $el, propName: value });
       $el.innerHTML = proxy[value];
     } else if (name.startsWith('on:')) {
       const [, eventName] = name.split(':');
-      // create a new function to handle the event
-      // binded to the proxy so we can use 'this' to access the data
-      const eventHandler = new Function(value).bind(proxy);
+      // create a new function binded to proxy for handling the event
+      // TODO: not reactive for nested objects and arrays
+      const eventHandler = new Function('$event', value).bind(proxy);
       $el.addEventListener(eventName, eventHandler);
     } else if (name === 'show') {
-      proxy.$show.push({ $el, prop: value });
+      proxy.$show.push({ $el, propName: value });
       $el.style.display = proxy[value] ? '' : 'none';
     }
   });
