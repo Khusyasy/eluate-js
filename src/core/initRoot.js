@@ -1,32 +1,43 @@
 import initElement from './initElement';
 
 function createObjectProxy(target = {}) {
-  // special cases used to update the real DOM
-  let $text = [];
-  let $show = [];
+  // special property used
+  const $text = [];
+  const $show = [];
+  function $get(prop) {
+    return new Function(`return this.${prop}`).call(target);
+  }
+  function $set(prop, value) {
+    // user JSON stringify to any value convert into string
+    let valueString = JSON.stringify(value);
+    new Function(`return this.${prop} = ${valueString}`).call(target);
+  }
 
   // TODO: check for cases like nested objects or arrays for data-text and data-show (and maybe more later)
   const proxy = new Proxy(target, {
     get(target, prop) {
-      if (prop === '$text') {
-        return $text;
-      } else if (prop === '$show') {
-        return $show;
+      if (prop.startsWith('$')) {
+        if (prop === '$text') {
+          return $text;
+        } else if (prop === '$show') {
+          return $show;
+        } else if (prop === '$get') {
+          return $get;
+        } else if (prop === '$set') {
+          return $set;
+        } else {
+          throw new Error(`Unknown special property: ${prop}`);
+        }
       }
 
-      let result = new Function(`return this.${prop}`).call(target);
-      return result;
+      return $get(prop);
     },
     set(target, prop, value) {
-      if (prop === '$text') {
-        $text = value;
-      } else if (prop === '$show') {
-        $show = value;
+      if (prop.startsWith('$')) {
+        return "can't set special property";
       }
 
-      // user JSON stringify to any value convert into string
-      let valueString = JSON.stringify(value);
-      new Function(`return this.${prop} = ${valueString}`).call(target);
+      $set(prop, value);
 
       // update the real DOM
       // data-text
