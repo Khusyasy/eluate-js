@@ -41,7 +41,7 @@
           hi im here
         </div>
     </div>
-    <div data-set="{ user: { name: 'khusyasy', 'age': 19, 'grades': [1, 2, 3, 4, 5] } }">
+    <div data-set="{ user: { name: 'khusyasy', age: 19, grades: [1, 2, 3, 4, 5] }, inputGrade: 12, }">
       <p>
         my name is <span data-text="user.name"></span>, and im <span data-text="user.age"></span> years old
       </p>
@@ -49,6 +49,17 @@
         my grades are:
         <span data-text="user.grades"></span>
       </p>
+      <div>
+        <input type="number" data-model="inputGrade">
+        <button data-on:click="this.user.grades = [...this.user.grades, Number(this.inputGrade)]; this.inputGrade = '';">
+          insert
+        </button>
+      </div>
+    </div>
+    <div data-set="{ copy: '' }">
+      <h1>copy cat here</h1>
+      <input type="text" data-model="copy">
+      <p data-text="copy"></p>
     </div>
     <script src="bundle.js"></script>
   </body>
