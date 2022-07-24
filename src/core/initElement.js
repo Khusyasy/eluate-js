@@ -14,6 +14,8 @@ function initElement(element, proxy) {
       showImpl(element, value, proxy);
     } else if (name === 'model') {
       modelImpl(element, value, proxy);
+    } else if (name === 'set') {
+      throw new Error('`data-set` cannot be inside another `data-set`');
     }
   });
   [...element.children].forEach((child) => {
