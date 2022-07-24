@@ -24,7 +24,9 @@ function createObjectProxy(target = {}) {
         $show = value;
       }
 
-      new Function(`return this.${prop} = ${value}`).call(target);
+      // user JSON stringify to any value convert into string
+      let valueString = JSON.stringify(value);
+      new Function(`return this.${prop} = ${valueString}`).call(target);
 
       // update the real DOM
       // data-text
