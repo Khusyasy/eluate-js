@@ -4,6 +4,12 @@ import showImpl from './features/show';
 import modelImpl from './features/model';
 
 function initElement(element, proxy) {
+  const vnode = {
+    proxy,
+    element,
+    children: [],
+  };
+
   Object.entries(element.dataset).forEach(([name, value]) => {
     if (name === 'text') {
       textImpl(element, value, proxy);
@@ -23,8 +29,11 @@ function initElement(element, proxy) {
     }
   });
   [...element.children].forEach((child) => {
-    initElement(child, proxy);
+    const $childVDom = initElement(child, proxy);
+    vnode.children.push($childVDom);
   });
+
+  return vnode;
 }
 
 export default initElement;
