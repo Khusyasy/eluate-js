@@ -21,7 +21,6 @@ function initRoot(element, value) {
     vroot.children.push(vnode);
   });
 
-  console.log('vroot', vroot);
   return vroot;
 }
 
