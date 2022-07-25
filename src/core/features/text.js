@@ -1,9 +1,6 @@
-import { createFnGlobal } from '../functions';
-
 function textImpl(element, value, proxy) {
-  const valueFn = createFnGlobal(value, proxy);
-  proxy.$text.push({ element, valueFn });
-  element.innerHTML = valueFn();
+  proxy.$text.push({ element, value });
+  element.innerHTML = proxy.$get(value);
 }
 
 export default textImpl;

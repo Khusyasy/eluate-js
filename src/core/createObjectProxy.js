@@ -4,7 +4,10 @@ function createObjectProxy(target = {}) {
   const $show = [];
   const $model = [];
   function $get(prop) {
-    return new Function(`return this.${prop}`).call(target);
+    const setGlobal = Object.keys(target)
+      .map((k) => `globalThis.${k} = this.${k}`)
+      .join(';');
+    return new Function(`${setGlobal};\nreturn ${prop}`).call(target);
   }
   function $set(prop, value) {
     // user JSON stringify to any value convert into string
@@ -13,12 +16,12 @@ function createObjectProxy(target = {}) {
 
     // update the real DOM
     // data-text
-    $text.forEach(({ element, valueFn }) => {
-      element.innerHTML = valueFn();
+    $text.forEach(({ element, value }) => {
+      element.innerHTML = proxy.$get(value);
     });
     // data-show
-    $show.forEach(({ element, valueFn }) => {
-      element.style.display = valueFn() ? '' : 'none';
+    $show.forEach(({ element, value }) => {
+      element.style.display = proxy.$get(value) ? '' : 'none';
     });
     // data-model
     $model.forEach(({ updateFn }) => {

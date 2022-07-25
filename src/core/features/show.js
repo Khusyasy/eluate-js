@@ -1,9 +1,6 @@
-import { createFnGlobal } from '../functions';
-
 function showImpl(element, value, proxy) {
-  const valueFn = createFnGlobal(value, proxy);
-  proxy.$show.push({ element, valueFn });
-  element.style.display = valueFn() ? '' : 'none';
+  proxy.$show.push({ element, value });
+  element.style.display = proxy.$get(value) ? '' : 'none';
 }
 
 export default showImpl;
